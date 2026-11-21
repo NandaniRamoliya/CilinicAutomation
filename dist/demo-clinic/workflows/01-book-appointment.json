@@ -1,0 +1,561 @@
+{
+  "name": "Sunrise · 1 · Book Appointment",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## 1 · Book Appointment\nReception fills the form (phone / walk-in). n8n validates it, checks the doctor's slot\nis free, saves the row and shows the result on screen.\n\n**Form URL:** open *Booking Form* → Production URL → bookmark it at reception.\nRules come from `client.config.json` (doctors, sessions, holidays, patients per slot).",
+        "width": 520,
+        "height": 200,
+        "color": 7
+      },
+      "id": "735818e7-ed3a-4c30-899a-e74c6c124453",
+      "name": "About",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -260,
+        -260
+      ]
+    },
+    {
+      "parameters": {
+        "formTitle": "Book Appointment — Sunrise Family Clinic",
+        "formDescription": "Reception use. Phone = patient's WhatsApp number. Do not enter symptoms or medical details.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Patient Name",
+              "fieldType": "text",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Phone",
+              "fieldType": "text",
+              "placeholder": "10-digit mobile number",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Doctor",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Dr. Mehta"
+                  },
+                  {
+                    "option": "Dr. Rao"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Appointment Date",
+              "fieldType": "date",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Time Slot",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "10:00"
+                  },
+                  {
+                    "option": "10:15"
+                  },
+                  {
+                    "option": "10:30"
+                  },
+                  {
+                    "option": "10:45"
+                  },
+                  {
+                    "option": "11:00"
+                  },
+                  {
+                    "option": "11:15"
+                  },
+                  {
+                    "option": "11:30"
+                  },
+                  {
+                    "option": "11:45"
+                  },
+                  {
+                    "option": "12:00"
+                  },
+                  {
+                    "option": "12:15"
+                  },
+                  {
+                    "option": "12:30"
+                  },
+                  {
+                    "option": "12:45"
+                  },
+                  {
+                    "option": "17:00"
+                  },
+                  {
+                    "option": "17:15"
+                  },
+                  {
+                    "option": "17:30"
+                  },
+                  {
+                    "option": "17:45"
+                  },
+                  {
+                    "option": "18:00"
+                  },
+                  {
+                    "option": "18:15"
+                  },
+                  {
+                    "option": "18:30"
+                  },
+                  {
+                    "option": "18:45"
+                  },
+                  {
+                    "option": "19:00"
+                  },
+                  {
+                    "option": "19:15"
+                  },
+                  {
+                    "option": "19:30"
+                  },
+                  {
+                    "option": "19:45"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Visit Type",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "New"
+                  },
+                  {
+                    "option": "Follow-up"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "WhatsApp Updates",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Yes"
+                  },
+                  {
+                    "option": "No"
+                  }
+                ]
+              },
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {
+          "path": "demo-clinic-book",
+          "buttonLabel": "Book appointment",
+          "appendAttribution": false
+        }
+      },
+      "id": "00e0a3b8-867a-471c-8d2e-ecf1d465219f",
+      "name": "Booking Form",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -200,
+        0
+      ],
+      "webhookId": "b4a5b0e0-7554-462a-8aac-9a51435f340e"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ===== Generated by clinic-automation-kit (scripts/build.js) — client: demo-clinic =====\n// Edit src/ + clients/<slug>/client.config.json and rebuild instead of editing here.\n\n// ---------------------------------------------------------------------------\n// dates.js — timezone-safe date/time helpers.\n// All dates in the Sheet are plain text \"YYYY-MM-DD\", times are \"HH:MM\" (24h).\n// This file is compiled into n8n Code nodes by scripts/build.js, so it must be\n// plain JavaScript with no imports (the strip blocks are removed at build time).\n// ---------------------------------------------------------------------------\n\nconst WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];\nconst MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];\n\nfunction pad2(n) {\n  return String(n).padStart(2, '0');\n}\n\n/** Today's date (YYYY-MM-DD) in the clinic's timezone. */\nfunction todayIn(tz, now) {\n  const d = now instanceof Date ? now : new Date();\n  return new Intl.DateTimeFormat('en-CA', {\n    timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit',\n  }).format(d);\n}\n\n/** Current time (HH:MM, 24h) in the clinic's timezone. */\nfunction timeIn(tz, now) {\n  const d = now instanceof Date ? now : new Date();\n  const parts = new Intl.DateTimeFormat('en-GB', {\n    timeZone: tz, hour: '2-digit', minute: '2-digit', hourCycle: 'h23',\n  }).formatToParts(d);\n  const h = parts.find((p) => p.type === 'hour').value;\n  const m = parts.find((p) => p.type === 'minute').value;\n  return pad2(h) + ':' + pad2(m);\n}\n\nfunction isIsoDate(s) {\n  if (typeof s !== 'string' || !/^\\d{4}-\\d{2}-\\d{2}$/.test(s)) return false;\n  const [y, m, d] = s.split('-').map(Number);\n  const dt = new Date(Date.UTC(y, m - 1, d));\n  return dt.getUTCFullYear() === y && dt.getUTCMonth() === m - 1 && dt.getUTCDate() === d;\n}\n\n/** Add n calendar days to an ISO date string. */\nfunction addDays(iso, n) {\n  const [y, m, d] = iso.split('-').map(Number);\n  return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10);\n}\n\n/** Whole days from iso a to iso b (b - a). */\nfunction daysBetween(a, b) {\n  const ta = Date.parse(a + 'T00:00:00Z');\n  const tb = Date.parse(b + 'T00:00:00Z');\n  return Math.round((tb - ta) / 86400000);\n}\n\nfunction weekdayName(iso) {\n  return WEEKDAYS[new Date(iso + 'T00:00:00Z').getUTCDay()];\n}\n\n/**\n * Normalise whatever a form / Google Sheet gives us into YYYY-MM-DD.\n * Handles: \"2026-11-18\", \"2026-11-18T00:00:00.000Z\", \"18/11/2026\", \"18-11-2026\",\n * \"11/18/2026\" (only when order === 'MDY'), and Google serial numbers (45980).\n * Returns '' when it cannot be parsed.\n */\nfunction normalizeDate(value, order) {\n  if (value === null || value === undefined || value === '') return '';\n  if (typeof value === 'number' && value > 20000 && value < 80000) {\n    // Google Sheets / Excel serial date (days since 1899-12-30)\n    return new Date(Date.UTC(1899, 11, 30) + value * 86400000).toISOString().slice(0, 10);\n  }\n  const s = String(value).trim();\n  const iso = s.slice(0, 10);\n  if (isIsoDate(iso)) return iso;\n  const m = s.match(/^(\\d{1,2})[\\/.-](\\d{1,2})[\\/.-](\\d{4})$/);\n  if (m) {\n    const a = Number(m[1]);\n    const b = Number(m[2]);\n    const y = m[3];\n    const [day, month] = order === 'MDY' ? [b, a] : [a, b];\n    const out = y + '-' + pad2(month) + '-' + pad2(day);\n    return isIsoDate(out) ? out : '';\n  }\n  return '';\n}\n\n/**\n * Normalise a time into HH:MM (24h). Accepts \"9:5\", \"09:05\", \"17:30\",\n * \"5:30 PM\", \"5 pm\", \"17:30:00\", and Sheets day-fractions (0.729166 = 17:30).\n */\nfunction normalizeTime(value) {\n  if (value === null || value === undefined || value === '') return '';\n  if (typeof value === 'number' && value >= 0 && value < 1) {\n    const total = Math.round(value * 24 * 60);\n    return pad2(Math.floor(total / 60)) + ':' + pad2(total % 60);\n  }\n  const s = String(value).trim().toLowerCase();\n  const m = s.match(/^(\\d{1,2})(?:[:.](\\d{1,2}))?(?::\\d{2})?\\s*(am|pm)?$/);\n  if (!m) return '';\n  let h = Number(m[1]);\n  const min = Number(m[2] || 0);\n  if (m[3] === 'pm' && h < 12) h += 12;\n  if (m[3] === 'am' && h === 12) h = 0;\n  if (h > 23 || min > 59) return '';\n  return pad2(h) + ':' + pad2(min);\n}\n\nfunction toMinutes(hhmm) {\n  const [h, m] = hhmm.split(':').map(Number);\n  return h * 60 + m;\n}\n\nfunction fromMinutes(total) {\n  return pad2(Math.floor(total / 60)) + ':' + pad2(total % 60);\n}\n\n/** \"2026-11-18\" -> \"18 Nov 2026\" */\nfunction displayDate(iso) {\n  if (!isIsoDate(iso)) return iso || '';\n  const [y, m, d] = iso.split('-').map(Number);\n  return d + ' ' + MONTHS[m - 1] + ' ' + y;\n}\n\n/** \"17:30\" -> \"5:30 PM\" */\nfunction displayTime(hhmm) {\n  const t = normalizeTime(hhmm);\n  if (!t) return hhmm || '';\n  let [h, m] = t.split(':').map(Number);\n  const ampm = h >= 12 ? 'PM' : 'AM';\n  h = h % 12 === 0 ? 12 : h % 12;\n  return h + ':' + pad2(m) + ' ' + ampm;\n}\n\n// ---------------------------------------------------------------------------\n// phone.js — WhatsApp number cleanup. Output: digits only, with country code,\n// no \"+\" or spaces (e.g. 919876543210) — the format the WhatsApp API expects.\n// ---------------------------------------------------------------------------\n\nfunction normalizePhone(raw, countryCode, localLength) {\n  const cc = String(countryCode || '91');\n  const len = Number(localLength || 10);\n  let d = String(raw === undefined || raw === null ? '' : raw).replace(/\\D/g, '');\n  if (d.startsWith('00')) d = d.slice(2); // 0091... international prefix\n  if (d.length === len + 1 && d.startsWith('0')) d = d.slice(1); // 09876543210 trunk prefix\n  if (d.length === len) d = cc + d;\n  return d;\n}\n\n/**\n * A number is valid when it is 8-15 digits (E.164) and, if it uses the clinic's\n * own country code, has exactly the local length after it.\n */\nfunction isValidPhone(phone, countryCode, localLength) {\n  const cc = String(countryCode || '91');\n  const len = Number(localLength || 10);\n  if (!/^\\d{8,15}$/.test(phone)) return false;\n  if (phone.startsWith(cc) && phone.length !== cc.length + len) return false;\n  if (!phone.startsWith(cc) && phone.length <= len) return false;\n  return true;\n}\n\n/** 919876543210 -> 98xxxxx210 — for alerts/emails so full numbers don't leak. */\nfunction maskPhone(phone) {\n  const s = String(phone || '');\n  if (s.length < 6) return s;\n  return s.slice(-10, -8) + 'xxxxx' + s.slice(-3);\n}\n\n// ---------------------------------------------------------------------------\n// schedule.js — clinic hours, doctor-wise sessions, closed days, holidays.\n// Depends on: dates.js\n// ---------------------------------------------------------------------------\n\n/**\n * Resolve one doctor's effective schedule. Each doctor in the config can be a\n * plain string (\"Dr. Mehta\") or an object that overrides the clinic defaults:\n * { name, sessions, closed_weekdays, patients_per_slot, slot_minutes }.\n */\nfunction doctorSchedule(config, doctorName) {\n  const s = config.schedule || {};\n  const list = (config.doctors || []).map((d) => (typeof d === 'string' ? { name: d } : d));\n  const doc = list.find((d) => d.name.toLowerCase() === String(doctorName || '').trim().toLowerCase());\n  if (!doc) return null;\n  return {\n    name: doc.name,\n    sessions: doc.sessions || s.sessions || [],\n    closed_weekdays: doc.closed_weekdays || s.closed_weekdays || [],\n    patients_per_slot: Number(doc.patients_per_slot || s.patients_per_slot || 1),\n    slot_minutes: Number(doc.slot_minutes || s.slot_minutes || 15),\n  };\n}\n\nfunction doctorNames(config) {\n  return (config.doctors || []).map((d) => (typeof d === 'string' ? d : d.name));\n}\n\n/** All bookable start times for one doctor, e.g. ['10:00','10:15',...]. */\nfunction slotsForDoctor(config, doctorName) {\n  const ds = doctorSchedule(config, doctorName);\n  if (!ds) return [];\n  const out = [];\n  for (const sess of ds.sessions) {\n    const start = toMinutes(sess.start);\n    const end = toMinutes(sess.end);\n    for (let t = start; t + ds.slot_minutes <= end; t += ds.slot_minutes) out.push(fromMinutes(t));\n  }\n  return out;\n}\n\n/** Union of every doctor's slots — used for the booking form's dropdown. */\nfunction allSlots(config) {\n  const set = new Set();\n  for (const name of doctorNames(config)) for (const t of slotsForDoctor(config, name)) set.add(t);\n  return [...set].sort();\n}\n\n/** Is the clinic / this doctor open on that date? Returns { open, reason }. */\nfunction isOpenDay(config, doctorName, iso) {\n  const ds = doctorSchedule(config, doctorName);\n  if (!ds) return { open: false, reason: 'Unknown doctor \"' + doctorName + '\"' };\n  const holidays = (config.schedule && config.schedule.holidays) || [];\n  if (holidays.includes(iso)) return { open: false, reason: iso + ' is a clinic holiday' };\n  const wd = weekdayName(iso);\n  const closed = ds.closed_weekdays.map((w) => String(w).toLowerCase());\n  if (closed.includes(wd.toLowerCase()) || closed.includes(wd.slice(0, 3).toLowerCase())) {\n    return { open: false, reason: ds.name + ' is not available on ' + wd + 's' };\n  }\n  return { open: true, reason: '' };\n}\n\n/** First open day for the doctor on/after iso (max 30 days ahead). */\nfunction nextOpenDay(config, doctorName, iso) {\n  let d = iso;\n  for (let i = 0; i < 30; i++) {\n    if (isOpenDay(config, doctorName, d).open) return d;\n    d = addDays(d, 1);\n  }\n  return iso;\n}\n\n// ---------------------------------------------------------------------------\n// sheet.js — the Appointments tab schema and row cleanup.\n// Depends on: dates.js\n// ---------------------------------------------------------------------------\n\n// Exact header row of the \"Appointments\" tab (A..O). n8n matches by name —\n// never rename these in a client's sheet.\nconst APPOINTMENT_COLUMNS = [\n  'appointment_id', 'patient_name', 'phone', 'doctor', 'appt_date', 'appt_time',\n  'visit_type', 'status', 'payment_status', 'amount_paid', 'payment_mode',\n  'follow_up_date', 'whatsapp_consent', 'last_reminder_date', 'booked_on',\n];\n\nconst STATUS = { BOOKED: 'Booked', COMPLETED: 'Completed', NO_SHOW: 'No-show', CANCELLED: 'Cancelled' };\n\n/**\n * Google Sheets can hand back numbers, formatted dates or stray spaces if a\n * receptionist typed into the sheet by hand. Clean every row before using it.\n */\nfunction normalizeRow(raw, config) {\n  const order = (config && config.locale && config.locale.sheet_date_order) || 'DMY';\n  const r = {};\n  for (const col of APPOINTMENT_COLUMNS) {\n    const v = raw[col];\n    r[col] = v === undefined || v === null ? '' : typeof v === 'string' ? v.trim() : v;\n  }\n  r.appointment_id = String(r.appointment_id).toUpperCase();\n  r.phone = String(r.phone).replace(/\\D/g, '');\n  r.appt_date = normalizeDate(r.appt_date, order);\n  r.appt_time = normalizeTime(r.appt_time);\n  r.follow_up_date = normalizeDate(r.follow_up_date, order);\n  r.last_reminder_date = normalizeDate(r.last_reminder_date, order);\n  r.booked_on = normalizeDate(r.booked_on, order);\n  r.amount_paid = r.amount_paid === '' ? '' : Number(r.amount_paid) || 0;\n  r.status = canonicalStatus(r.status);\n  if (raw.row_number !== undefined) r.row_number = raw.row_number;\n  return r;\n}\n\nfunction canonicalStatus(s) {\n  const k = String(s || '').toLowerCase().replace(/[\\s_-]/g, '');\n  if (k === 'booked' || k === '') return STATUS.BOOKED;\n  if (k === 'completed' || k === 'done') return STATUS.COMPLETED;\n  if (k === 'noshow') return STATUS.NO_SHOW;\n  if (k === 'cancelled' || k === 'canceled') return STATUS.CANCELLED;\n  return String(s);\n}\n\n/** Only rows that actually are appointments (skip blank / half-typed lines). */\nfunction cleanRows(items, config) {\n  return items\n    .map((r) => normalizeRow(r, config))\n    .filter((r) => r.appointment_id && r.appt_date);\n}\n\n/** Full 15-column object with '' defaults — what we append to the sheet. */\nfunction toSheetRow(partial) {\n  const out = {};\n  for (const col of APPOINTMENT_COLUMNS) out[col] = partial[col] === undefined ? '' : partial[col];\n  return out;\n}\n\n// ---------------------------------------------------------------------------\n// booking.js — validate a booking request and check it against the sheet.\n// Used by BOTH the reception booking form and the WhatsApp AI assistant, so\n// the rules (double booking, closed days, duplicates) are identical everywhere.\n// Depends on: dates.js, phone.js, schedule.js, sheet.js\n// ---------------------------------------------------------------------------\n\nconst ID_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no 0/O/1/I — easy to read out on phone\n\nfunction newAppointmentId(existingIds, rand) {\n  const r = rand || Math.random;\n  const taken = existingIds instanceof Set ? existingIds : new Set(existingIds || []);\n  for (let attempt = 0; attempt < 20; attempt++) {\n    let id = 'APT-';\n    for (let i = 0; i < 6; i++) id += ID_ALPHABET[Math.floor(r() * ID_ALPHABET.length)];\n    if (!taken.has(id)) return id;\n  }\n  throw new Error('Could not generate a unique appointment ID');\n}\n\n/**\n * Step 1: clean + validate the request on its own (no sheet needed).\n * input: { patient_name, phone, doctor, appt_date, appt_time, visit_type, whatsapp_consent }\n * returns { booking, errors[] }\n */\nfunction cleanBooking(input, config, now) {\n  const tz = config.locale.timezone;\n  const errors = [];\n  const today = todayIn(tz, now);\n\n  const name = String(input.patient_name || '').replace(/\\s+/g, ' ').trim();\n  if (name.length < 2) errors.push('Patient name is missing.');\n\n  const phone = normalizePhone(input.phone, config.locale.country_code, config.locale.local_phone_length);\n  if (!isValidPhone(phone, config.locale.country_code, config.locale.local_phone_length)) {\n    errors.push('Phone number \"' + (input.phone || '') + '\" is not valid. Use a ' + config.locale.local_phone_length + '-digit mobile number.');\n  }\n\n  const ds = doctorSchedule(config, input.doctor);\n  if (!ds) errors.push('Doctor \"' + (input.doctor || '') + '\" is not in this clinic\\'s list.');\n  const doctor = ds ? ds.name : String(input.doctor || '');\n\n  const date = normalizeDate(input.appt_date, config.locale.sheet_date_order);\n  if (!date) errors.push('Appointment date is missing or invalid.');\n\n  const time = normalizeTime(input.appt_time);\n  if (!time) errors.push('Time slot is missing or invalid.');\n\n  if (date) {\n    const ahead = daysBetween(today, date);\n    const maxAhead = Number(config.schedule.max_days_ahead || 60);\n    if (ahead < 0) errors.push('Date ' + displayDate(date) + ' is in the past.');\n    else if (ahead > maxAhead) errors.push('Bookings are open only ' + maxAhead + ' days ahead.');\n    if (ds) {\n      const open = isOpenDay(config, doctor, date);\n      if (!open.open) errors.push(open.reason + '.');\n    }\n    if (ahead === 0 && time && input.reject_past_times_today && time < timeIn(tz, now)) {\n      errors.push('That time has already passed today.');\n    }\n  }\n  if (ds && time && !slotsForDoctor(config, doctor).includes(time)) {\n    errors.push(doctor + ' does not have a ' + displayTime(time) + ' slot.');\n  }\n\n  const visitTypes = config.visit_types || ['New', 'Follow-up'];\n  const visit_type = visitTypes.find((v) => v.toLowerCase() === String(input.visit_type || '').toLowerCase()) || visitTypes[0];\n  const consent = /^(yes|y|true|haan|ha)$/i.test(String(input.whatsapp_consent || '').trim()) ? 'Yes' : 'No';\n\n  const booking = toSheetRow({\n    patient_name: name,\n    phone,\n    doctor,\n    appt_date: date,\n    appt_time: time,\n    visit_type,\n    status: STATUS.BOOKED,\n    payment_status: 'Pending',\n    whatsapp_consent: consent,\n    booked_on: today,\n  });\n  return { booking, errors };\n}\n\nfunction activeRows(rows) {\n  return rows.filter((r) => r.status !== STATUS.CANCELLED);\n}\n\n/** Free slots for a doctor on a date, given existing sheet rows. */\nfunction availableSlots(config, rows, doctor, date, now) {\n  const ds = doctorSchedule(config, doctor);\n  if (!ds || !isOpenDay(config, ds.name, date).open) return [];\n  const tz = config.locale.timezone;\n  const today = todayIn(tz, now);\n  if (daysBetween(today, date) < 0) return [];\n  const nowTime = timeIn(tz, now);\n  const counts = {};\n  for (const r of activeRows(rows)) {\n    if (r.doctor.toLowerCase() === ds.name.toLowerCase() && r.appt_date === date) {\n      counts[r.appt_time] = (counts[r.appt_time] || 0) + 1;\n    }\n  }\n  return slotsForDoctor(config, ds.name).filter(\n    (t) => (counts[t] || 0) < ds.patients_per_slot && !(date === today && t <= nowTime),\n  );\n}\n\n/**\n * Step 2: check the cleaned booking against existing rows.\n * Detects: slot full (double booking), same patient already booked with the\n * same doctor that day (double submit). Suggests the next free slots.\n * returns { ok, errors[], suggestions[], booking (with appointment_id) }\n */\nfunction checkBooking(booking, rows, config, now, rand) {\n  const errors = [];\n  let suggestions = [];\n  const ds = doctorSchedule(config, booking.doctor);\n  const sameDay = activeRows(rows).filter(\n    (r) => r.appt_date === booking.appt_date && r.doctor.toLowerCase() === booking.doctor.toLowerCase(),\n  );\n  const inSlot = sameDay.filter((r) => r.appt_time === booking.appt_time);\n  if (ds && inSlot.length >= ds.patients_per_slot) {\n    errors.push(booking.doctor + ' already has ' + inSlot.length + ' booking(s) at ' + displayTime(booking.appt_time) + ' on ' + displayDate(booking.appt_date) + '.');\n    // the 3 free slots closest to the requested time (ties go to the later slot)\n    const want = toMinutes(booking.appt_time);\n    suggestions = availableSlots(config, rows, booking.doctor, booking.appt_date, now)\n      .map((t) => ({ t, d: Math.abs(toMinutes(t) - want), later: toMinutes(t) > want ? 0 : 1 }))\n      .sort((a, b) => a.d - b.d || a.later - b.later)\n      .slice(0, 3)\n      .map((x) => x.t)\n      .sort();\n  }\n  const dup = sameDay.find((r) => r.phone === booking.phone && r.status === STATUS.BOOKED);\n  if (dup) {\n    errors.push('This patient already has appointment ' + dup.appointment_id + ' with ' + dup.doctor + ' at ' + displayTime(dup.appt_time) + ' that day.');\n  }\n  const ids = new Set(rows.map((r) => r.appointment_id));\n  const out = Object.assign({}, booking, { appointment_id: newAppointmentId(ids, rand) });\n  return { ok: errors.length === 0, errors, suggestions, booking: out };\n}\n\n/** Upcoming (Booked, today or later) appointments for a phone number. */\nfunction upcomingForPhone(rows, phone, today) {\n  return rows\n    .filter((r) => r.phone === phone && r.status === STATUS.BOOKED && r.appt_date >= today)\n    .sort((a, b) => (a.appt_date + a.appt_time).localeCompare(b.appt_date + b.appt_time));\n}\n\n// ----- client config (from client.config.json) -----\nconst CONFIG = {\n  \"locale\": {\n    \"timezone\": \"Asia/Kolkata\",\n    \"country_code\": \"91\",\n    \"local_phone_length\": 10,\n    \"currency\": \"Rs\",\n    \"sheet_date_order\": \"DMY\"\n  },\n  \"google\": {\n    \"appointments_tab\": \"Appointments\",\n    \"sheet_id\": \"DEMO_SHEET_ID_paste_real_id_here\"\n  },\n  \"schedule\": {\n    \"slot_minutes\": 15,\n    \"closed_weekdays\": [\n      \"Sunday\"\n    ],\n    \"holidays\": [\n      \"2026-12-25\",\n      \"2027-01-26\"\n    ],\n    \"patients_per_slot\": 1,\n    \"max_days_ahead\": 60,\n    \"sessions\": [\n      {\n        \"start\": \"10:00\",\n        \"end\": \"13:00\"\n      },\n      {\n        \"start\": \"17:00\",\n        \"end\": \"20:00\"\n      }\n    ]\n  },\n  \"visit_types\": [\n    \"New\",\n    \"Follow-up\"\n  ],\n  \"follow_up_options_days\": [\n    3,\n    7,\n    15,\n    30\n  ],\n  \"payment_modes\": [\n    \"Cash\",\n    \"UPI\",\n    \"Card\"\n  ],\n  \"notifications\": {\n    \"report_emails\": [\n      \"doctor@example.com\"\n    ],\n    \"report_whatsapp_numbers\": [\n      \"919000000001\"\n    ],\n    \"admin_email\": \"alerts@example.com\"\n  },\n  \"schedules\": {\n    \"reminder_cron\": \"0 18 * * *\",\n    \"report_cron\": \"0 21 * * *\",\n    \"same_day_reminder_cron\": \"0 8-19 * * *\"\n  },\n  \"reminders\": {\n    \"appointment_day_before\": true,\n    \"follow_up\": true,\n    \"same_day_hours_before\": 2\n  },\n  \"whatsapp\": {\n    \"enabled\": true,\n    \"graph_api_version\": \"v21.0\",\n    \"templates\": {\n      \"appointment_reminder\": {\n        \"name\": \"appointment_reminder_v1\",\n        \"language\": \"en\",\n        \"params\": [\n          \"patient_name\",\n          \"doctor\",\n          \"display_date\",\n          \"display_time\"\n        ]\n      },\n      \"follow_up_reminder\": {\n        \"name\": \"follow_up_reminder_v1\",\n        \"language\": \"en\",\n        \"params\": [\n          \"patient_name\",\n          \"doctor\",\n          \"display_date\"\n        ]\n      },\n      \"booking_confirmation\": {\n        \"name\": \"booking_confirmation_v1\",\n        \"language\": \"en\",\n        \"params\": [\n          \"patient_name\",\n          \"doctor\",\n          \"display_date\",\n          \"display_time\",\n          \"appointment_id\"\n        ]\n      },\n      \"doctor_report\": {\n        \"name\": \"doctor_report_v1\",\n        \"language\": \"en\",\n        \"params\": [\n          \"date\",\n          \"total\",\n          \"completed\",\n          \"no_show\",\n          \"collection\",\n          \"pending\",\n          \"tomorrow\"\n        ]\n      }\n    },\n    \"phone_number_id\": \"DEMO_PHONE_NUMBER_ID\"\n  },\n  \"features\": {\n    \"booking_confirmation_whatsapp\": true,\n    \"doctor_report_whatsapp\": true,\n    \"razorpay_advance_fee\": true,\n    \"ai_whatsapp_assistant\": true\n  },\n  \"client\": {\n    \"slug\": \"demo-clinic\",\n    \"clinic_name\": \"Sunrise Family Clinic\",\n    \"short_name\": \"Sunrise\",\n    \"city\": \"Ahmedabad\",\n    \"clinic_phone\": \"+91 90000 00000\",\n    \"clinic_address\": \"12 Demo Road, Ahmedabad\"\n  },\n  \"doctors\": [\n    \"Dr. Mehta\",\n    {\n      \"name\": \"Dr. Rao\",\n      \"closed_weekdays\": [\n        \"Sunday\",\n        \"Thursday\"\n      ],\n      \"sessions\": [\n        {\n          \"start\": \"17:00\",\n          \"end\": \"20:00\"\n        }\n      ]\n    }\n  ]\n};\n\n// ----- workflow logic -----\nconst f = $input.first().json;\nconst res = cleanBooking({\n  patient_name: f['Patient Name'],\n  phone: f['Phone'],\n  doctor: f['Doctor'],\n  appt_date: f['Appointment Date'],\n  appt_time: f['Time Slot'],\n  visit_type: f['Visit Type'],\n  whatsapp_consent: f['WhatsApp Updates'],\n}, CONFIG, new Date());\nreturn [{ json: { booking: res.booking, errors: res.errors } }];\n"
+      },
+      "id": "760d5865-ba8a-4cd3-8f04-6b4a3491002f",
+      "name": "Clean Booking",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        20,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "value": "DEMO_SHEET_ID_paste_real_id_here",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Appointments",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "2e4fc343-165f-49f3-8007-98cf9cdd18bd",
+      "name": "Read Appointments",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        240,
+        0
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets (clinic)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// ===== Generated by clinic-automation-kit (scripts/build.js) — client: demo-clinic =====\n// Edit src/ + clients/<slug>/client.config.json and rebuild instead of editing here.\n\n// ---------------------------------------------------------------------------\n// dates.js — timezone-safe date/time helpers.\n// All dates in the Sheet are plain text \"YYYY-MM-DD\", times are \"HH:MM\" (24h).\n// This file is compiled into n8n Code nodes by scripts/build.js, so it must be\n// plain JavaScript with no imports (the strip blocks are removed at build time).\n// ---------------------------------------------------------------------------\n\nconst WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];\nconst MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];\n\nfunction pad2(n) {\n  return String(n).padStart(2, '0');\n}\n\n/** Today's date (YYYY-MM-DD) in the clinic's timezone. */\nfunction todayIn(tz, now) {\n  const d = now instanceof Date ? now : new Date();\n  return new Intl.DateTimeFormat('en-CA', {\n    timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit',\n  }).format(d);\n}\n\n/** Current time (HH:MM, 24h) in the clinic's timezone. */\nfunction timeIn(tz, now) {\n  const d = now instanceof Date ? now : new Date();\n  const parts = new Intl.DateTimeFormat('en-GB', {\n    timeZone: tz, hour: '2-digit', minute: '2-digit', hourCycle: 'h23',\n  }).formatToParts(d);\n  const h = parts.find((p) => p.type === 'hour').value;\n  const m = parts.find((p) => p.type === 'minute').value;\n  return pad2(h) + ':' + pad2(m);\n}\n\nfunction isIsoDate(s) {\n  if (typeof s !== 'string' || !/^\\d{4}-\\d{2}-\\d{2}$/.test(s)) return false;\n  const [y, m, d] = s.split('-').map(Number);\n  const dt = new Date(Date.UTC(y, m - 1, d));\n  return dt.getUTCFullYear() === y && dt.getUTCMonth() === m - 1 && dt.getUTCDate() === d;\n}\n\n/** Add n calendar days to an ISO date string. */\nfunction addDays(iso, n) {\n  const [y, m, d] = iso.split('-').map(Number);\n  return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10);\n}\n\n/** Whole days from iso a to iso b (b - a). */\nfunction daysBetween(a, b) {\n  const ta = Date.parse(a + 'T00:00:00Z');\n  const tb = Date.parse(b + 'T00:00:00Z');\n  return Math.round((tb - ta) / 86400000);\n}\n\nfunction weekdayName(iso) {\n  return WEEKDAYS[new Date(iso + 'T00:00:00Z').getUTCDay()];\n}\n\n/**\n * Normalise whatever a form / Google Sheet gives us into YYYY-MM-DD.\n * Handles: \"2026-11-18\", \"2026-11-18T00:00:00.000Z\", \"18/11/2026\", \"18-11-2026\",\n * \"11/18/2026\" (only when order === 'MDY'), and Google serial numbers (45980).\n * Returns '' when it cannot be parsed.\n */\nfunction normalizeDate(value, order) {\n  if (value === null || value === undefined || value === '') return '';\n  if (typeof value === 'number' && value > 20000 && value < 80000) {\n    // Google Sheets / Excel serial date (days since 1899-12-30)\n    return new Date(Date.UTC(1899, 11, 30) + value * 86400000).toISOString().slice(0, 10);\n  }\n  const s = String(value).trim();\n  const iso = s.slice(0, 10);\n  if (isIsoDate(iso)) return iso;\n  const m = s.match(/^(\\d{1,2})[\\/.-](\\d{1,2})[\\/.-](\\d{4})$/);\n  if (m) {\n    const a = Number(m[1]);\n    const b = Number(m[2]);\n    const y = m[3];\n    const [day, month] = order === 'MDY' ? [b, a] : [a, b];\n    const out = y + '-' + pad2(month) + '-' + pad2(day);\n    return isIsoDate(out) ? out : '';\n  }\n  return '';\n}\n\n/**\n * Normalise a time into HH:MM (24h). Accepts \"9:5\", \"09:05\", \"17:30\",\n * \"5:30 PM\", \"5 pm\", \"17:30:00\", and Sheets day-fractions (0.729166 = 17:30).\n */\nfunction normalizeTime(value) {\n  if (value === null || value === undefined || value === '') return '';\n  if (typeof value === 'number' && value >= 0 && value < 1) {\n    const total = Math.round(value * 24 * 60);\n    return pad2(Math.floor(total / 60)) + ':' + pad2(total % 60);\n  }\n  const s = String(value).trim().toLowerCase();\n  const m = s.match(/^(\\d{1,2})(?:[:.](\\d{1,2}))?(?::\\d{2})?\\s*(am|pm)?$/);\n  if (!m) return '';\n  let h = Number(m[1]);\n  const min = Number(m[2] || 0);\n  if (m[3] === 'pm' && h < 12) h += 12;\n  if (m[3] === 'am' && h === 12) h = 0;\n  if (h > 23 || min > 59) return '';\n  return pad2(h) + ':' + pad2(min);\n}\n\nfunction toMinutes(hhmm) {\n  const [h, m] = hhmm.split(':').map(Number);\n  return h * 60 + m;\n}\n\nfunction fromMinutes(total) {\n  return pad2(Math.floor(total / 60)) + ':' + pad2(total % 60);\n}\n\n/** \"2026-11-18\" -> \"18 Nov 2026\" */\nfunction displayDate(iso) {\n  if (!isIsoDate(iso)) return iso || '';\n  const [y, m, d] = iso.split('-').map(Number);\n  return d + ' ' + MONTHS[m - 1] + ' ' + y;\n}\n\n/** \"17:30\" -> \"5:30 PM\" */\nfunction displayTime(hhmm) {\n  const t = normalizeTime(hhmm);\n  if (!t) return hhmm || '';\n  let [h, m] = t.split(':').map(Number);\n  const ampm = h >= 12 ? 'PM' : 'AM';\n  h = h % 12 === 0 ? 12 : h % 12;\n  return h + ':' + pad2(m) + ' ' + ampm;\n}\n\n// ---------------------------------------------------------------------------\n// phone.js — WhatsApp number cleanup. Output: digits only, with country code,\n// no \"+\" or spaces (e.g. 919876543210) — the format the WhatsApp API expects.\n// ---------------------------------------------------------------------------\n\nfunction normalizePhone(raw, countryCode, localLength) {\n  const cc = String(countryCode || '91');\n  const len = Number(localLength || 10);\n  let d = String(raw === undefined || raw === null ? '' : raw).replace(/\\D/g, '');\n  if (d.startsWith('00')) d = d.slice(2); // 0091... international prefix\n  if (d.length === len + 1 && d.startsWith('0')) d = d.slice(1); // 09876543210 trunk prefix\n  if (d.length === len) d = cc + d;\n  return d;\n}\n\n/**\n * A number is valid when it is 8-15 digits (E.164) and, if it uses the clinic's\n * own country code, has exactly the local length after it.\n */\nfunction isValidPhone(phone, countryCode, localLength) {\n  const cc = String(countryCode || '91');\n  const len = Number(localLength || 10);\n  if (!/^\\d{8,15}$/.test(phone)) return false;\n  if (phone.startsWith(cc) && phone.length !== cc.length + len) return false;\n  if (!phone.startsWith(cc) && phone.length <= len) return false;\n  return true;\n}\n\n/** 919876543210 -> 98xxxxx210 — for alerts/emails so full numbers don't leak. */\nfunction maskPhone(phone) {\n  const s = String(phone || '');\n  if (s.length < 6) return s;\n  return s.slice(-10, -8) + 'xxxxx' + s.slice(-3);\n}\n\n// ---------------------------------------------------------------------------\n// schedule.js — clinic hours, doctor-wise sessions, closed days, holidays.\n// Depends on: dates.js\n// ---------------------------------------------------------------------------\n\n/**\n * Resolve one doctor's effective schedule. Each doctor in the config can be a\n * plain string (\"Dr. Mehta\") or an object that overrides the clinic defaults:\n * { name, sessions, closed_weekdays, patients_per_slot, slot_minutes }.\n */\nfunction doctorSchedule(config, doctorName) {\n  const s = config.schedule || {};\n  const list = (config.doctors || []).map((d) => (typeof d === 'string' ? { name: d } : d));\n  const doc = list.find((d) => d.name.toLowerCase() === String(doctorName || '').trim().toLowerCase());\n  if (!doc) return null;\n  return {\n    name: doc.name,\n    sessions: doc.sessions || s.sessions || [],\n    closed_weekdays: doc.closed_weekdays || s.closed_weekdays || [],\n    patients_per_slot: Number(doc.patients_per_slot || s.patients_per_slot || 1),\n    slot_minutes: Number(doc.slot_minutes || s.slot_minutes || 15),\n  };\n}\n\nfunction doctorNames(config) {\n  return (config.doctors || []).map((d) => (typeof d === 'string' ? d : d.name));\n}\n\n/** All bookable start times for one doctor, e.g. ['10:00','10:15',...]. */\nfunction slotsForDoctor(config, doctorName) {\n  const ds = doctorSchedule(config, doctorName);\n  if (!ds) return [];\n  const out = [];\n  for (const sess of ds.sessions) {\n    const start = toMinutes(sess.start);\n    const end = toMinutes(sess.end);\n    for (let t = start; t + ds.slot_minutes <= end; t += ds.slot_minutes) out.push(fromMinutes(t));\n  }\n  return out;\n}\n\n/** Union of every doctor's slots — used for the booking form's dropdown. */\nfunction allSlots(config) {\n  const set = new Set();\n  for (const name of doctorNames(config)) for (const t of slotsForDoctor(config, name)) set.add(t);\n  return [...set].sort();\n}\n\n/** Is the clinic / this doctor open on that date? Returns { open, reason }. */\nfunction isOpenDay(config, doctorName, iso) {\n  const ds = doctorSchedule(config, doctorName);\n  if (!ds) return { open: false, reason: 'Unknown doctor \"' + doctorName + '\"' };\n  const holidays = (config.schedule && config.schedule.holidays) || [];\n  if (holidays.includes(iso)) return { open: false, reason: iso + ' is a clinic holiday' };\n  const wd = weekdayName(iso);\n  const closed = ds.closed_weekdays.map((w) => String(w).toLowerCase());\n  if (closed.includes(wd.toLowerCase()) || closed.includes(wd.slice(0, 3).toLowerCase())) {\n    return { open: false, reason: ds.name + ' is not available on ' + wd + 's' };\n  }\n  return { open: true, reason: '' };\n}\n\n/** First open day for the doctor on/after iso (max 30 days ahead). */\nfunction nextOpenDay(config, doctorName, iso) {\n  let d = iso;\n  for (let i = 0; i < 30; i++) {\n    if (isOpenDay(config, doctorName, d).open) return d;\n    d = addDays(d, 1);\n  }\n  return iso;\n}\n\n// ---------------------------------------------------------------------------\n// sheet.js — the Appointments tab schema and row cleanup.\n// Depends on: dates.js\n// ---------------------------------------------------------------------------\n\n// Exact header row of the \"Appointments\" tab (A..O). n8n matches by name —\n// never rename these in a client's sheet.\nconst APPOINTMENT_COLUMNS = [\n  'appointment_id', 'patient_name', 'phone', 'doctor', 'appt_date', 'appt_time',\n  'visit_type', 'status', 'payment_status', 'amount_paid', 'payment_mode',\n  'follow_up_date', 'whatsapp_consent', 'last_reminder_date', 'booked_on',\n];\n\nconst STATUS = { BOOKED: 'Booked', COMPLETED: 'Completed', NO_SHOW: 'No-show', CANCELLED: 'Cancelled' };\n\n/**\n * Google Sheets can hand back numbers, formatted dates or stray spaces if a\n * receptionist typed into the sheet by hand. Clean every row before using it.\n */\nfunction normalizeRow(raw, config) {\n  const order = (config && config.locale && config.locale.sheet_date_order) || 'DMY';\n  const r = {};\n  for (const col of APPOINTMENT_COLUMNS) {\n    const v = raw[col];\n    r[col] = v === undefined || v === null ? '' : typeof v === 'string' ? v.trim() : v;\n  }\n  r.appointment_id = String(r.appointment_id).toUpperCase();\n  r.phone = String(r.phone).replace(/\\D/g, '');\n  r.appt_date = normalizeDate(r.appt_date, order);\n  r.appt_time = normalizeTime(r.appt_time);\n  r.follow_up_date = normalizeDate(r.follow_up_date, order);\n  r.last_reminder_date = normalizeDate(r.last_reminder_date, order);\n  r.booked_on = normalizeDate(r.booked_on, order);\n  r.amount_paid = r.amount_paid === '' ? '' : Number(r.amount_paid) || 0;\n  r.status = canonicalStatus(r.status);\n  if (raw.row_number !== undefined) r.row_number = raw.row_number;\n  return r;\n}\n\nfunction canonicalStatus(s) {\n  const k = String(s || '').toLowerCase().replace(/[\\s_-]/g, '');\n  if (k === 'booked' || k === '') return STATUS.BOOKED;\n  if (k === 'completed' || k === 'done') return STATUS.COMPLETED;\n  if (k === 'noshow') return STATUS.NO_SHOW;\n  if (k === 'cancelled' || k === 'canceled') return STATUS.CANCELLED;\n  return String(s);\n}\n\n/** Only rows that actually are appointments (skip blank / half-typed lines). */\nfunction cleanRows(items, config) {\n  return items\n    .map((r) => normalizeRow(r, config))\n    .filter((r) => r.appointment_id && r.appt_date);\n}\n\n/** Full 15-column object with '' defaults — what we append to the sheet. */\nfunction toSheetRow(partial) {\n  const out = {};\n  for (const col of APPOINTMENT_COLUMNS) out[col] = partial[col] === undefined ? '' : partial[col];\n  return out;\n}\n\n// ---------------------------------------------------------------------------\n// booking.js — validate a booking request and check it against the sheet.\n// Used by BOTH the reception booking form and the WhatsApp AI assistant, so\n// the rules (double booking, closed days, duplicates) are identical everywhere.\n// Depends on: dates.js, phone.js, schedule.js, sheet.js\n// ---------------------------------------------------------------------------\n\nconst ID_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no 0/O/1/I — easy to read out on phone\n\nfunction newAppointmentId(existingIds, rand) {\n  const r = rand || Math.random;\n  const taken = existingIds instanceof Set ? existingIds : new Set(existingIds || []);\n  for (let attempt = 0; attempt < 20; attempt++) {\n    let id = 'APT-';\n    for (let i = 0; i < 6; i++) id += ID_ALPHABET[Math.floor(r() * ID_ALPHABET.length)];\n    if (!taken.has(id)) return id;\n  }\n  throw new Error('Could not generate a unique appointment ID');\n}\n\n/**\n * Step 1: clean + validate the request on its own (no sheet needed).\n * input: { patient_name, phone, doctor, appt_date, appt_time, visit_type, whatsapp_consent }\n * returns { booking, errors[] }\n */\nfunction cleanBooking(input, config, now) {\n  const tz = config.locale.timezone;\n  const errors = [];\n  const today = todayIn(tz, now);\n\n  const name = String(input.patient_name || '').replace(/\\s+/g, ' ').trim();\n  if (name.length < 2) errors.push('Patient name is missing.');\n\n  const phone = normalizePhone(input.phone, config.locale.country_code, config.locale.local_phone_length);\n  if (!isValidPhone(phone, config.locale.country_code, config.locale.local_phone_length)) {\n    errors.push('Phone number \"' + (input.phone || '') + '\" is not valid. Use a ' + config.locale.local_phone_length + '-digit mobile number.');\n  }\n\n  const ds = doctorSchedule(config, input.doctor);\n  if (!ds) errors.push('Doctor \"' + (input.doctor || '') + '\" is not in this clinic\\'s list.');\n  const doctor = ds ? ds.name : String(input.doctor || '');\n\n  const date = normalizeDate(input.appt_date, config.locale.sheet_date_order);\n  if (!date) errors.push('Appointment date is missing or invalid.');\n\n  const time = normalizeTime(input.appt_time);\n  if (!time) errors.push('Time slot is missing or invalid.');\n\n  if (date) {\n    const ahead = daysBetween(today, date);\n    const maxAhead = Number(config.schedule.max_days_ahead || 60);\n    if (ahead < 0) errors.push('Date ' + displayDate(date) + ' is in the past.');\n    else if (ahead > maxAhead) errors.push('Bookings are open only ' + maxAhead + ' days ahead.');\n    if (ds) {\n      const open = isOpenDay(config, doctor, date);\n      if (!open.open) errors.push(open.reason + '.');\n    }\n    if (ahead === 0 && time && input.reject_past_times_today && time < timeIn(tz, now)) {\n      errors.push('That time has already passed today.');\n    }\n  }\n  if (ds && time && !slotsForDoctor(config, doctor).includes(time)) {\n    errors.push(doctor + ' does not have a ' + displayTime(time) + ' slot.');\n  }\n\n  const visitTypes = config.visit_types || ['New', 'Follow-up'];\n  const visit_type = visitTypes.find((v) => v.toLowerCase() === String(input.visit_type || '').toLowerCase()) || visitTypes[0];\n  const consent = /^(yes|y|true|haan|ha)$/i.test(String(input.whatsapp_consent || '').trim()) ? 'Yes' : 'No';\n\n  const booking = toSheetRow({\n    patient_name: name,\n    phone,\n    doctor,\n    appt_date: date,\n    appt_time: time,\n    visit_type,\n    status: STATUS.BOOKED,\n    payment_status: 'Pending',\n    whatsapp_consent: consent,\n    booked_on: today,\n  });\n  return { booking, errors };\n}\n\nfunction activeRows(rows) {\n  return rows.filter((r) => r.status !== STATUS.CANCELLED);\n}\n\n/** Free slots for a doctor on a date, given existing sheet rows. */\nfunction availableSlots(config, rows, doctor, date, now) {\n  const ds = doctorSchedule(config, doctor);\n  if (!ds || !isOpenDay(config, ds.name, date).open) return [];\n  const tz = config.locale.timezone;\n  const today = todayIn(tz, now);\n  if (daysBetween(today, date) < 0) return [];\n  const nowTime = timeIn(tz, now);\n  const counts = {};\n  for (const r of activeRows(rows)) {\n    if (r.doctor.toLowerCase() === ds.name.toLowerCase() && r.appt_date === date) {\n      counts[r.appt_time] = (counts[r.appt_time] || 0) + 1;\n    }\n  }\n  return slotsForDoctor(config, ds.name).filter(\n    (t) => (counts[t] || 0) < ds.patients_per_slot && !(date === today && t <= nowTime),\n  );\n}\n\n/**\n * Step 2: check the cleaned booking against existing rows.\n * Detects: slot full (double booking), same patient already booked with the\n * same doctor that day (double submit). Suggests the next free slots.\n * returns { ok, errors[], suggestions[], booking (with appointment_id) }\n */\nfunction checkBooking(booking, rows, config, now, rand) {\n  const errors = [];\n  let suggestions = [];\n  const ds = doctorSchedule(config, booking.doctor);\n  const sameDay = activeRows(rows).filter(\n    (r) => r.appt_date === booking.appt_date && r.doctor.toLowerCase() === booking.doctor.toLowerCase(),\n  );\n  const inSlot = sameDay.filter((r) => r.appt_time === booking.appt_time);\n  if (ds && inSlot.length >= ds.patients_per_slot) {\n    errors.push(booking.doctor + ' already has ' + inSlot.length + ' booking(s) at ' + displayTime(booking.appt_time) + ' on ' + displayDate(booking.appt_date) + '.');\n    // the 3 free slots closest to the requested time (ties go to the later slot)\n    const want = toMinutes(booking.appt_time);\n    suggestions = availableSlots(config, rows, booking.doctor, booking.appt_date, now)\n      .map((t) => ({ t, d: Math.abs(toMinutes(t) - want), later: toMinutes(t) > want ? 0 : 1 }))\n      .sort((a, b) => a.d - b.d || a.later - b.later)\n      .slice(0, 3)\n      .map((x) => x.t)\n      .sort();\n  }\n  const dup = sameDay.find((r) => r.phone === booking.phone && r.status === STATUS.BOOKED);\n  if (dup) {\n    errors.push('This patient already has appointment ' + dup.appointment_id + ' with ' + dup.doctor + ' at ' + displayTime(dup.appt_time) + ' that day.');\n  }\n  const ids = new Set(rows.map((r) => r.appointment_id));\n  const out = Object.assign({}, booking, { appointment_id: newAppointmentId(ids, rand) });\n  return { ok: errors.length === 0, errors, suggestions, booking: out };\n}\n\n/** Upcoming (Booked, today or later) appointments for a phone number. */\nfunction upcomingForPhone(rows, phone, today) {\n  return rows\n    .filter((r) => r.phone === phone && r.status === STATUS.BOOKED && r.appt_date >= today)\n    .sort((a, b) => (a.appt_date + a.appt_time).localeCompare(b.appt_date + b.appt_time));\n}\n\n// ---------------------------------------------------------------------------\n// whatsapp.js — builds WhatsApp Cloud API (Meta Graph API) request bodies.\n// Template parameter ORDER comes from the client config, so every client can\n// word their approved templates differently without touching code.\n// Depends on: dates.js\n// ---------------------------------------------------------------------------\n\n/** Every value a template is allowed to use. Keep these free of medical info. */\nfunction templateFields(row, config, extra) {\n  const name = String(row.patient_name || '').trim();\n  const f = {\n    patient_name: name,\n    first_name: name.split(' ')[0] || name,\n    doctor: row.doctor || '',\n    clinic_name: (config.client && config.client.clinic_name) || '',\n    clinic_phone: (config.client && config.client.clinic_phone) || '',\n    clinic_address: (config.client && config.client.clinic_address) || '',\n    appointment_id: row.appointment_id || '',\n    appt_date: row.appt_date || '',\n    display_date: displayDate(row.appt_date),\n    appt_time: row.appt_time || '',\n    display_time: displayTime(row.appt_time),\n    follow_up_date: row.follow_up_date || '',\n    follow_up_display_date: displayDate(row.follow_up_date),\n  };\n  return Object.assign(f, extra || {});\n}\n\n/** Meta rejects params containing newlines, tabs or 4+ consecutive spaces. */\nfunction cleanParam(v) {\n  return String(v === undefined || v === null ? '' : v).replace(/[\\r\\n\\t]+/g, ' ').replace(/ {2,}/g, ' ').trim() || '-';\n}\n\n/**\n * tpl: { name, language, params: ['patient_name','doctor','display_date','display_time'] }\n */\nfunction buildTemplatePayload(to, tpl, fields) {\n  const params = (tpl.params || []).map((key) => {\n    if (!(key in fields)) throw new Error('Template \"' + tpl.name + '\" uses unknown field \"' + key + '\"');\n    return { type: 'text', text: cleanParam(fields[key]) };\n  });\n  const template = { name: tpl.name, language: { code: tpl.language || 'en' } };\n  if (params.length) template.components = [{ type: 'body', parameters: params }];\n  return { messaging_product: 'whatsapp', to: String(to), type: 'template', template };\n}\n\n/** Free-form text — only allowed within 24h of the patient's last message. */\nfunction buildTextPayload(to, text) {\n  return {\n    messaging_product: 'whatsapp',\n    recipient_type: 'individual',\n    to: String(to),\n    type: 'text',\n    text: { preview_url: false, body: String(text).slice(0, 4000) },\n  };\n}\n\n/** Interpret the HTTP Request node's output (works with \"Continue on Fail\"). */\nfunction parseSendResult(json) {\n  if (json && Array.isArray(json.messages) && json.messages[0] && json.messages[0].id) {\n    return { ok: true, message_id: json.messages[0].id, error: '' };\n  }\n  let err = json && json.error;\n  if (err && typeof err === 'object') err = err.message || err.description || JSON.stringify(err);\n  return { ok: false, message_id: '', error: String(err || 'Unknown WhatsApp API response') };\n}\n\n// ----- client config (from client.config.json) -----\nconst CONFIG = {\n  \"locale\": {\n    \"timezone\": \"Asia/Kolkata\",\n    \"country_code\": \"91\",\n    \"local_phone_length\": 10,\n    \"currency\": \"Rs\",\n    \"sheet_date_order\": \"DMY\"\n  },\n  \"google\": {\n    \"appointments_tab\": \"Appointments\",\n    \"sheet_id\": \"DEMO_SHEET_ID_paste_real_id_here\"\n  },\n  \"schedule\": {\n    \"slot_minutes\": 15,\n    \"closed_weekdays\": [\n      \"Sunday\"\n    ],\n    \"holidays\": [\n      \"2026-12-25\",\n      \"2027-01-26\"\n    ],\n    \"patients_per_slot\": 1,\n    \"max_days_ahead\": 60,\n    \"sessions\": [\n      {\n        \"start\": \"10:00\",\n        \"end\": \"13:00\"\n      },\n      {\n        \"start\": \"17:00\",\n        \"end\": \"20:00\"\n      }\n    ]\n  },\n  \"visit_types\": [\n    \"New\",\n    \"Follow-up\"\n  ],\n  \"follow_up_options_days\": [\n    3,\n    7,\n    15,\n    30\n  ],\n  \"payment_modes\": [\n    \"Cash\",\n    \"UPI\",\n    \"Card\"\n  ],\n  \"notifications\": {\n    \"report_emails\": [\n      \"doctor@example.com\"\n    ],\n    \"report_whatsapp_numbers\": [\n      \"919000000001\"\n    ],\n    \"admin_email\": \"alerts@example.com\"\n  },\n  \"schedules\": {\n    \"reminder_cron\": \"0 18 * * *\",\n    \"report_cron\": \"0 21 * * *\",\n    \"same_day_reminder_cron\": \"0 8-19 * * *\"\n  },\n  \"reminders\": {\n    \"appointment_day_before\": true,\n    \"follow_up\": true,\n    \"same_day_hours_before\": 2\n  },\n  \"whatsapp\": {\n    \"enabled\": true,\n    \"graph_api_version\": \"v21.0\",\n    \"templates\": {\n      \"appointment_reminder\": {\n        \"name\": \"appointment_reminder_v1\",\n        \"language\": \"en\",\n        \"params\": [\n          \"patient_name\",\n          \"doctor\",\n          \"display_date\",\n          \"display_time\"\n        ]\n      },\n      \"follow_up_reminder\": {\n        \"name\": \"follow_up_reminder_v1\",\n        \"language\": \"en\",\n        \"params\": [\n          \"patient_name\",\n          \"doctor\",\n          \"display_date\"\n        ]\n      },\n      \"booking_confirmation\": {\n        \"name\": \"booking_confirmation_v1\",\n        \"language\": \"en\",\n        \"params\": [\n          \"patient_name\",\n          \"doctor\",\n          \"display_date\",\n          \"display_time\",\n          \"appointment_id\"\n        ]\n      },\n      \"doctor_report\": {\n        \"name\": \"doctor_report_v1\",\n        \"language\": \"en\",\n        \"params\": [\n          \"date\",\n          \"total\",\n          \"completed\",\n          \"no_show\",\n          \"collection\",\n          \"pending\",\n          \"tomorrow\"\n        ]\n      }\n    },\n    \"phone_number_id\": \"DEMO_PHONE_NUMBER_ID\"\n  },\n  \"features\": {\n    \"booking_confirmation_whatsapp\": true,\n    \"doctor_report_whatsapp\": true,\n    \"razorpay_advance_fee\": true,\n    \"ai_whatsapp_assistant\": true\n  },\n  \"client\": {\n    \"slug\": \"demo-clinic\",\n    \"clinic_name\": \"Sunrise Family Clinic\",\n    \"short_name\": \"Sunrise\",\n    \"city\": \"Ahmedabad\",\n    \"clinic_phone\": \"+91 90000 00000\",\n    \"clinic_address\": \"12 Demo Road, Ahmedabad\"\n  },\n  \"doctors\": [\n    \"Dr. Mehta\",\n    {\n      \"name\": \"Dr. Rao\",\n      \"closed_weekdays\": [\n        \"Sunday\",\n        \"Thursday\"\n      ],\n      \"sessions\": [\n        {\n          \"start\": \"17:00\",\n          \"end\": \"20:00\"\n        }\n      ]\n    }\n  ]\n};\n\n// ----- workflow logic -----\nconst req = $('Clean Booking').first().json;\nconst rows = cleanRows($input.all().map((i) => i.json), CONFIG);\nif (req.errors.length) {\n  return [{ json: { ok: false, message: req.errors.join(' ') } }];\n}\nconst res = checkBooking(req.booking, rows, CONFIG, new Date());\nif (!res.ok) {\n  let message = res.errors.join(' ');\n  if (res.suggestions.length) message += ' Free slots that day: ' + res.suggestions.map(displayTime).join(', ') + '.';\n  return [{ json: { ok: false, message } }];\n}\nconst b = res.booking;\nconst tpl = CONFIG.whatsapp.templates.booking_confirmation;\nconst send_confirmation = true && b.whatsapp_consent === 'Yes' && !!(tpl && tpl.name);\nreturn [{ json: {\n  ok: true,\n  row: b,\n  send_confirmation,\n  wa_payload: send_confirmation ? buildTemplatePayload(b.phone, tpl, templateFields(b, CONFIG)) : null,\n  message: b.appointment_id + ' booked: ' + b.patient_name + ' with ' + b.doctor + ' on ' +\n    displayDate(b.appt_date) + ' at ' + displayTime(b.appt_time) + '. Give this ID to the patient.',\n} }];\n"
+      },
+      "id": "706e43af-048c-470a-8faa-086f125f2ad7",
+      "name": "Slot Check",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "2343ac10-6dac-4f40-8027-e377b68ce141",
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "6b7ae85b-88c2-4ac7-8bae-bb26a7384a0c",
+      "name": "Can Book?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        680,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// ===== Generated by clinic-automation-kit (scripts/build.js) — client: demo-clinic =====\n// Edit src/ + clients/<slug>/client.config.json and rebuild instead of editing here.\n\n\n\n// ----- client config (from client.config.json) -----\nconst CONFIG = {\n  \"locale\": {\n    \"timezone\": \"Asia/Kolkata\",\n    \"country_code\": \"91\",\n    \"local_phone_length\": 10,\n    \"currency\": \"Rs\",\n    \"sheet_date_order\": \"DMY\"\n  },\n  \"google\": {\n    \"appointments_tab\": \"Appointments\",\n    \"sheet_id\": \"DEMO_SHEET_ID_paste_real_id_here\"\n  },\n  \"schedule\": {\n    \"slot_minutes\": 15,\n    \"closed_weekdays\": [\n      \"Sunday\"\n    ],\n    \"holidays\": [\n      \"2026-12-25\",\n      \"2027-01-26\"\n    ],\n    \"patients_per_slot\": 1,\n    \"max_days_ahead\": 60,\n    \"sessions\": [\n      {\n        \"start\": \"10:00\",\n        \"end\": \"13:00\"\n      },\n      {\n        \"start\": \"17:00\",\n        \"end\": \"20:00\"\n      }\n    ]\n  },\n  \"visit_types\": [\n    \"New\",\n    \"Follow-up\"\n  ],\n  \"follow_up_options_days\": [\n    3,\n    7,\n    15,\n    30\n  ],\n  \"payment_modes\": [\n    \"Cash\",\n    \"UPI\",\n    \"Card\"\n  ],\n  \"notifications\": {\n    \"report_emails\": [\n      \"doctor@example.com\"\n    ],\n    \"report_whatsapp_numbers\": [\n      \"919000000001\"\n    ],\n    \"admin_email\": \"alerts@example.com\"\n  },\n  \"schedules\": {\n    \"reminder_cron\": \"0 18 * * *\",\n    \"report_cron\": \"0 21 * * *\",\n    \"same_day_reminder_cron\": \"0 8-19 * * *\"\n  },\n  \"reminders\": {\n    \"appointment_day_before\": true,\n    \"follow_up\": true,\n    \"same_day_hours_before\": 2\n  },\n  \"whatsapp\": {\n    \"enabled\": true,\n    \"graph_api_version\": \"v21.0\",\n    \"templates\": {\n      \"appointment_reminder\": {\n        \"name\": \"appointment_reminder_v1\",\n        \"language\": \"en\",\n        \"params\": [\n          \"patient_name\",\n          \"doctor\",\n          \"display_date\",\n          \"display_time\"\n        ]\n      },\n      \"follow_up_reminder\": {\n        \"name\": \"follow_up_reminder_v1\",\n        \"language\": \"en\",\n        \"params\": [\n          \"patient_name\",\n          \"doctor\",\n          \"display_date\"\n        ]\n      },\n      \"booking_confirmation\": {\n        \"name\": \"booking_confirmation_v1\",\n        \"language\": \"en\",\n        \"params\": [\n          \"patient_name\",\n          \"doctor\",\n          \"display_date\",\n          \"display_time\",\n          \"appointment_id\"\n        ]\n      },\n      \"doctor_report\": {\n        \"name\": \"doctor_report_v1\",\n        \"language\": \"en\",\n        \"params\": [\n          \"date\",\n          \"total\",\n          \"completed\",\n          \"no_show\",\n          \"collection\",\n          \"pending\",\n          \"tomorrow\"\n        ]\n      }\n    },\n    \"phone_number_id\": \"DEMO_PHONE_NUMBER_ID\"\n  },\n  \"features\": {\n    \"booking_confirmation_whatsapp\": true,\n    \"doctor_report_whatsapp\": true,\n    \"razorpay_advance_fee\": true,\n    \"ai_whatsapp_assistant\": true\n  },\n  \"client\": {\n    \"slug\": \"demo-clinic\",\n    \"clinic_name\": \"Sunrise Family Clinic\",\n    \"short_name\": \"Sunrise\",\n    \"city\": \"Ahmedabad\",\n    \"clinic_phone\": \"+91 90000 00000\",\n    \"clinic_address\": \"12 Demo Road, Ahmedabad\"\n  },\n  \"doctors\": [\n    \"Dr. Mehta\",\n    {\n      \"name\": \"Dr. Rao\",\n      \"closed_weekdays\": [\n        \"Sunday\",\n        \"Thursday\"\n      ],\n      \"sessions\": [\n        {\n          \"start\": \"17:00\",\n          \"end\": \"20:00\"\n        }\n      ]\n    }\n  ]\n};\n\n// ----- workflow logic -----\nreturn [{ json: $input.first().json.row }];\n"
+      },
+      "id": "35d6502e-6efa-40ed-857d-2d83915130ed",
+      "name": "Row To Save",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        900,
+        -120
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "DEMO_SHEET_ID_paste_real_id_here",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Appointments",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {
+          "cellFormat": "RAW"
+        }
+      },
+      "id": "8c041692-c0e6-4c77-8e2e-07f0933098a8",
+      "name": "Save Appointment",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1120,
+        -120
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets (clinic)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "completion",
+        "completionTitle": "Appointment booked ✅",
+        "completionMessage": "={{ $('Slot Check').first().json.message }}",
+        "options": {}
+      },
+      "id": "2a7f1f74-895d-435a-83d5-a39dc7a2f2dd",
+      "name": "Booked",
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 1,
+      "position": [
+        1780,
+        -120
+      ],
+      "webhookId": "b22f80ed-bdd9-495e-8385-5e66dbacadc0"
+    },
+    {
+      "parameters": {
+        "operation": "completion",
+        "completionTitle": "Not booked ❌",
+        "completionMessage": "={{ $('Slot Check').first().json.message }}",
+        "options": {}
+      },
+      "id": "f8642f21-8b80-4a4c-80c1-7ed27b714ef1",
+      "name": "Not Booked",
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 1,
+      "position": [
+        900,
+        120
+      ],
+      "webhookId": "22604ab9-a221-48db-8fdd-e4d9d6b15fb2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "acd2828b-a0ca-487f-8acd-b019be6f5f84",
+              "leftValue": "={{ $('Slot Check').first().json.send_confirmation }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "93826c5d-b627-4a25-82b2-ba61ad29d76d",
+      "name": "Send Confirmation?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1340,
+        -120
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v21.0/DEMO_PHONE_NUMBER_ID/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($('Slot Check').first().json.wa_payload) }}",
+        "options": {
+          "timeout": 20000
+        }
+      },
+      "id": "3334cc4e-9c34-4027-8ead-e01e2615ba04",
+      "name": "Send Confirmation",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1560,
+        -240
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "",
+          "name": "WhatsApp Cloud API"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 3000
+    }
+  ],
+  "connections": {
+    "Booking Form": {
+      "main": [
+        [
+          {
+            "node": "Clean Booking",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clean Booking": {
+      "main": [
+        [
+          {
+            "node": "Read Appointments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Appointments": {
+      "main": [
+        [
+          {
+            "node": "Slot Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slot Check": {
+      "main": [
+        [
+          {
+            "node": "Can Book?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Can Book?": {
+      "main": [
+        [
+          {
+            "node": "Row To Save",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Not Booked",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Row To Save": {
+      "main": [
+        [
+          {
+            "node": "Save Appointment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Appointment": {
+      "main": [
+        [
+          {
+            "node": "Send Confirmation?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Confirmation?": {
+      "main": [
+        [
+          {
+            "node": "Send Confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Booked",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Confirmation": {
+      "main": [
+        [
+          {
+            "node": "Booked",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Kolkata",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "generatedBy": "clinic-automation-kit",
+    "client": "demo-clinic"
+  },
+  "tags": []
+}

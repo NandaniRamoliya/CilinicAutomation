@@ -1,0 +1,68 @@
+{
+  "_readme": "Demo client with EVERY feature switched on — used for demos, tests and as a worked example. Uses placeholder IDs, so it builds but will not run until you point it at a real sheet / WhatsApp number.",
+  "client": {
+    "slug": "demo-clinic",
+    "clinic_name": "Sunrise Family Clinic",
+    "short_name": "Sunrise",
+    "city": "Ahmedabad",
+    "clinic_phone": "+91 90000 00000",
+    "clinic_address": "12 Demo Road, Ahmedabad"
+  },
+  "locale": { "timezone": "Asia/Kolkata", "country_code": "91", "local_phone_length": 10, "currency": "Rs", "sheet_date_order": "DMY" },
+  "google": { "sheet_id": "DEMO_SHEET_ID_paste_real_id_here", "appointments_tab": "Appointments" },
+  "doctors": [
+    "Dr. Mehta",
+    { "name": "Dr. Rao", "closed_weekdays": ["Sunday", "Thursday"], "sessions": [{ "start": "17:00", "end": "20:00" }] }
+  ],
+  "schedule": {
+    "slot_minutes": 15,
+    "sessions": [{ "start": "10:00", "end": "13:00" }, { "start": "17:00", "end": "20:00" }],
+    "closed_weekdays": ["Sunday"],
+    "holidays": ["2026-12-25", "2027-01-26"],
+    "patients_per_slot": 1,
+    "max_days_ahead": 60
+  },
+  "visit_types": ["New", "Follow-up"],
+  "follow_up_options_days": [3, 7, 15, 30],
+  "payment_modes": ["Cash", "UPI", "Card"],
+  "notifications": {
+    "admin_email": "alerts@example.com",
+    "report_emails": ["doctor@example.com"],
+    "report_whatsapp_numbers": ["919000000001"]
+  },
+  "schedules": { "reminder_cron": "0 18 * * *", "report_cron": "0 21 * * *", "same_day_reminder_cron": "0 8-19 * * *" },
+  "reminders": { "appointment_day_before": true, "follow_up": true, "same_day_hours_before": 2 },
+  "whatsapp": {
+    "enabled": true,
+    "phone_number_id": "DEMO_PHONE_NUMBER_ID",
+    "graph_api_version": "v21.0",
+    "templates": {
+      "appointment_reminder": { "name": "appointment_reminder_v1", "language": "en", "params": ["patient_name", "doctor", "display_date", "display_time"] },
+      "follow_up_reminder":   { "name": "follow_up_reminder_v1",   "language": "en", "params": ["patient_name", "doctor", "display_date"] },
+      "booking_confirmation": { "name": "booking_confirmation_v1", "language": "en", "params": ["patient_name", "doctor", "display_date", "display_time", "appointment_id"] },
+      "doctor_report":        { "name": "doctor_report_v1",        "language": "en", "params": ["date", "total", "completed", "no_show", "collection", "pending", "tomorrow"] }
+    }
+  },
+  "features": {
+    "booking_confirmation_whatsapp": true,
+    "doctor_report_whatsapp": true,
+    "razorpay_advance_fee": true,
+    "ai_whatsapp_assistant": true
+  },
+  "ai_assistant": {
+    "provider": "openai",
+    "model": "gpt-4.1-mini",
+    "verify_token": "AUTO",
+    "memory_messages": 12,
+    "languages": "English, Hindi, Hinglish, Gujarati",
+    "emergency_number": "112",
+    "extra_clinic_info": "Parking available. Bring previous prescriptions to your visit."
+  },
+  "n8n": {
+    "credentials": {
+      "google_sheets": { "id": "", "name": "Google Sheets (clinic)" },
+      "gmail": { "id": "", "name": "Gmail (alerts)" },
+      "whatsapp": { "id": "", "name": "WhatsApp Cloud API" }
+    }
+  }
+}

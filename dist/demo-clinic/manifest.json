@@ -1,0 +1,50 @@
+{
+  "client": "demo-clinic",
+  "workflows": [
+    {
+      "key": "error_handler",
+      "file": "workflows/00-error-handler.json",
+      "name": "Sunrise · 0 · Error Handler"
+    },
+    {
+      "key": "book_appointment",
+      "file": "workflows/01-book-appointment.json",
+      "name": "Sunrise · 1 · Book Appointment"
+    },
+    {
+      "key": "reminders",
+      "file": "workflows/02-reminders.json",
+      "name": "Sunrise · 2 · WhatsApp Reminders"
+    },
+    {
+      "key": "same_day_reminders",
+      "file": "workflows/02b-same-day-reminders.json",
+      "name": "Sunrise · 2b · Same-day Reminders"
+    },
+    {
+      "key": "visit_update",
+      "file": "workflows/03-visit-update.json",
+      "name": "Sunrise · 3 · Visit Update"
+    },
+    {
+      "key": "daily_report",
+      "file": "workflows/04-daily-report.json",
+      "name": "Sunrise · 4 · Daily Report"
+    },
+    {
+      "key": "razorpay",
+      "file": "workflows/06-razorpay-advance-fee.json",
+      "name": "Sunrise · 6 · Razorpay Advance Fee"
+    },
+    {
+      "key": "booking_engine",
+      "file": "workflows/08-booking-engine-ai-tools.json",
+      "name": "Sunrise · 8 · Booking Engine (AI tools)"
+    },
+    {
+      "key": "ai_receptionist",
+      "file": "workflows/07-whatsapp-ai-receptionist.json",
+      "name": "Sunrise · 7 · WhatsApp AI Receptionist"
+    }
+  ]
+}

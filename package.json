@@ -1,0 +1,17 @@
+{
+  "name": "clinic-automation-kit",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Reusable n8n clinic automation (booking, WhatsApp reminders, visit update, daily report, optional AI WhatsApp receptionist) — configure once per client, build, deploy.",
+  "license": "UNLICENSED",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "new-client": "node scripts/new-client.js",
+    "build": "node scripts/build.js",
+    "build:all": "node scripts/build.js --all",
+    "deploy": "node scripts/deploy.js",
+    "test": "node --test \"tests/*.test.js\"",
+    "validate:n8n": "node scripts/validate-n8n.js",
+    "test:e2e": "node scripts/dev/n8n-e2e.js"
+  }
+}

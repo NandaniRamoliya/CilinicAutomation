@@ -1,0 +1,101 @@
+{
+  "_readme": "Copy this folder to clients/<client-slug>/ (or run: npm run new-client -- <slug>). Fill every REPLACE_ value, then: npm run build -- <slug>. No secrets in this file — tokens/passwords go into n8n credentials.",
+
+  "client": {
+    "slug": "REPLACE_client-slug",
+    "clinic_name": "REPLACE_Clinic Name",
+    "short_name": "REPLACE_Short",
+    "city": "",
+    "clinic_phone": "REPLACE_+91 98xxxxxxxx",
+    "clinic_address": ""
+  },
+
+  "locale": {
+    "timezone": "Asia/Kolkata",
+    "country_code": "91",
+    "local_phone_length": 10,
+    "currency": "Rs",
+    "sheet_date_order": "DMY"
+  },
+
+  "google": {
+    "sheet_id": "REPLACE_GOOGLE_SHEET_ID",
+    "appointments_tab": "Appointments"
+  },
+
+  "doctors": [
+    "REPLACE_Dr. Name",
+    { "name": "REPLACE_Dr. Second (optional, own timings)", "closed_weekdays": ["Sunday", "Thursday"], "sessions": [{ "start": "17:00", "end": "20:00" }] }
+  ],
+
+  "schedule": {
+    "slot_minutes": 15,
+    "sessions": [
+      { "start": "10:00", "end": "13:00" },
+      { "start": "17:00", "end": "20:00" }
+    ],
+    "closed_weekdays": ["Sunday"],
+    "holidays": [],
+    "patients_per_slot": 1,
+    "max_days_ahead": 60
+  },
+
+  "visit_types": ["New", "Follow-up"],
+  "follow_up_options_days": [3, 7, 15, 30],
+  "payment_modes": ["Cash", "UPI", "Card"],
+
+  "notifications": {
+    "admin_email": "REPLACE_you@your-agency.com",
+    "report_emails": ["REPLACE_doctor@clinic.com"],
+    "report_whatsapp_numbers": []
+  },
+
+  "schedules": {
+    "reminder_cron": "0 18 * * *",
+    "report_cron": "0 21 * * *",
+    "same_day_reminder_cron": "0 8-19 * * *"
+  },
+
+  "reminders": {
+    "appointment_day_before": true,
+    "follow_up": true,
+    "same_day_hours_before": 0
+  },
+
+  "whatsapp": {
+    "enabled": true,
+    "phone_number_id": "REPLACE_META_PHONE_NUMBER_ID",
+    "graph_api_version": "v21.0",
+    "templates": {
+      "appointment_reminder": { "name": "appointment_reminder_v1", "language": "en", "params": ["patient_name", "doctor", "display_date", "display_time"] },
+      "follow_up_reminder":   { "name": "follow_up_reminder_v1",   "language": "en", "params": ["patient_name", "doctor", "display_date"] },
+      "booking_confirmation": { "name": "booking_confirmation_v1", "language": "en", "params": ["patient_name", "doctor", "display_date", "display_time", "appointment_id"] },
+      "doctor_report":        { "name": "doctor_report_v1",        "language": "en", "params": ["date", "total", "completed", "no_show", "collection", "pending", "tomorrow"] }
+    }
+  },
+
+  "features": {
+    "booking_confirmation_whatsapp": false,
+    "doctor_report_whatsapp": false,
+    "razorpay_advance_fee": false,
+    "ai_whatsapp_assistant": false
+  },
+
+  "ai_assistant": {
+    "provider": "openai",
+    "model": "gpt-4.1-mini",
+    "verify_token": "AUTO",
+    "memory_messages": 12,
+    "languages": "English, Hindi, Hinglish",
+    "emergency_number": "112",
+    "extra_clinic_info": ""
+  },
+
+  "n8n": {
+    "credentials": {
+      "google_sheets": { "id": "", "name": "Google Sheets (clinic)" },
+      "gmail": { "id": "", "name": "Gmail (alerts)" },
+      "whatsapp": { "id": "", "name": "WhatsApp Cloud API" }
+    }
+  }
+}

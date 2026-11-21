@@ -1,0 +1,4 @@
+appointment_id,patient_name,phone,doctor,appt_date,appt_time,visit_type,status,payment_status,amount_paid,payment_mode,follow_up_date,whatsapp_consent,last_reminder_date,booked_on
+APT-K7M2QX,Rohit Kumar,919000000001,Dr. Mehta,2026-11-18,10:30,New,Booked,Pending,,,,Yes,,2026-11-16
+APT-P4W9ZA,Neha Singh,919000000002,Dr. Mehta,2026-11-17,11:00,Follow-up,Completed,Paid,500,UPI,2026-12-02,Yes,,2026-11-15
+APT-H3N8RT,Amit Verma,919000000003,Dr. Rao,2026-11-17,17:30,New,No-show,Pending,,,,No,,2026-11-14

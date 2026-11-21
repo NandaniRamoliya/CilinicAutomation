@@ -1,0 +1,39 @@
+{
+  "_readme": "Template bodies to submit in Meta WhatsApp Manager (category: UTILITY). The {{n}} order MUST match the 'params' list in client.config.json. Never put diagnosis, medicines, tests, offers or discounts in these (offers push the template to the paid MARKETING category; medical words risk the patient's privacy).",
+  "appointment_reminder": {
+    "category": "UTILITY",
+    "params": ["patient_name", "doctor", "display_date", "display_time"],
+    "variants": {
+      "en": "Hello {{1}}, this is a reminder of your appointment with {{2}} on {{3}} at {{4}}. If you cannot come, please call the clinic to reschedule. Thank you!",
+      "hi": "Namaste {{1}}, {{2}} ke saath aapka appointment {{3}} ko {{4}} baje hai. Agar aap nahi aa paayenge to kripya clinic ko call karke bata dein. Dhanyavaad!"
+    },
+    "sample": ["Rohit", "Dr. Mehta", "18 Nov 2026", "10:30 AM"]
+  },
+  "follow_up_reminder": {
+    "category": "UTILITY",
+    "params": ["patient_name", "doctor", "display_date"],
+    "variants": {
+      "en": "Hello {{1}}, {{2}} had asked you to come for a follow-up on {{3}}. Please call the clinic or reply here to book a time. Thank you!",
+      "hi": "Namaste {{1}}, {{2}} ne aapko {{3}} ko follow-up ke liye bulaya hai. Appointment ke liye clinic ko call karein ya isi number par reply karein. Dhanyavaad!"
+    },
+    "sample": ["Neha", "Dr. Mehta", "2 Dec 2026"]
+  },
+  "booking_confirmation": {
+    "category": "UTILITY",
+    "params": ["patient_name", "doctor", "display_date", "display_time", "appointment_id"],
+    "variants": {
+      "en": "Hello {{1}}, your appointment with {{2}} is confirmed for {{3}} at {{4}}. Appointment ID: {{5}}. To cancel or reschedule, please call the clinic.",
+      "hi": "Namaste {{1}}, {{2}} ke saath aapka appointment {{3}} ko {{4}} baje confirm ho gaya hai. Appointment ID: {{5}}. Cancel ya reschedule ke liye clinic ko call karein."
+    },
+    "sample": ["Rohit", "Dr. Mehta", "18 Nov 2026", "10:30 AM", "APT-K7M2QX"]
+  },
+  "doctor_report": {
+    "category": "UTILITY",
+    "params": ["date", "total", "completed", "no_show", "collection", "pending", "tomorrow"],
+    "variants": {
+      "en": "Clinic report {{1}}: Appointments {{2}}, Completed {{3}}, No-show {{4}}, Collection Rs {{5}}, Pending payments {{6}}, Tomorrow's appointments {{7}}.",
+      "hi": "Clinic report {{1}}: Appointments {{2}}, Completed {{3}}, No-show {{4}}, Collection Rs {{5}}, Pending payments {{6}}, Kal ke appointments {{7}}."
+    },
+    "sample": ["18 Nov 2026", "24", "19", "3", "9500", "2", "21"]
+  }
+}
