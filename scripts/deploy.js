@@ -168,7 +168,14 @@ if (require.main === module) {
   const url = process.env.N8N_URL;
   const apiKey = process.env.N8N_API_KEY;
   if (!slug || !url || !apiKey) {
-    console.error('Usage: N8N_URL=https://… N8N_API_KEY=… npm run deploy -- <client-slug> [--activate] [--dry-run]');
+    console.error([
+      'Usage (replace city-dental with your client\'s folder name):',
+      '  PowerShell : $env:N8N_URL = "https://…"; $env:N8N_API_KEY = "…"; npm run deploy -- city-dental --activate',
+      '  bash       : N8N_URL=https://… N8N_API_KEY=… npm run deploy -- city-dental --activate',
+      !slug ? '  Missing: client name' : '',
+      !url ? '  Missing: N8N_URL' : '',
+      !apiKey ? '  Missing: N8N_API_KEY' : '',
+    ].filter(Boolean).join('\n'));
     process.exit(1);
   }
   deploy(slug, { url, apiKey, activate: args.includes('--activate'), dryRun: args.includes('--dry-run') })

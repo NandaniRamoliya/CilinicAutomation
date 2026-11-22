@@ -136,7 +136,7 @@ if (require.main === module) {
   const args = process.argv.slice(2);
   const slugs = args.includes('--all') ? listClients() : args.filter((a) => !a.startsWith('-'));
   if (!slugs.length) {
-    console.error('Usage: npm run build -- <client-slug>   |   npm run build -- --all');
+    console.error('Usage: npm run build -- city-dental   (your client folder name, no < > brackets)   or   npm run build:all');
     console.error('Clients: ' + listClients().join(', '));
     process.exit(1);
   }

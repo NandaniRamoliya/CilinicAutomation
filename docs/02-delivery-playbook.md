@@ -32,10 +32,13 @@ Also agree in writing: **which data is NOT stored** (no medical details), who ow
 
 ## Day 1–2 · Configure and build
 
-```bash
-npm run new-client -- <slug> "Clinic Name"
-# edit clients/<slug>/client.config.json
-npm run build -- <slug>
+Below, `city-dental` stands for your client's short name (lowercase, digits, dashes). Wherever other docs show
+`<slug>`, type that name **without** the `<` `>` brackets.
+
+```powershell
+npm run new-client -- city-dental "City Dental Care"
+# edit clients\city-dental\client.config.json
+npm run build -- city-dental
 ```
 The build refuses to run while any `REPLACE_` value, bad time, unknown weekday, bad email or unknown template
 parameter remains — fix what it lists.
@@ -51,8 +54,15 @@ In the client's n8n, create credentials with **exactly** these names (or change 
 | `WhatsApp Cloud API` | Header Auth — Name `Authorization`, Value `Bearer <permanent token>` |
 | `OpenAI account` / `Anthropic account` | only for the AI add-on |
 
+Windows PowerShell:
+```powershell
+$env:N8N_URL = "https://citydental.app.n8n.cloud"   # the client's n8n address
+$env:N8N_API_KEY = "paste-the-api-key"               # n8n → Settings → n8n API
+npm run deploy -- city-dental
+```
+macOS / Linux / Git Bash:
 ```bash
-N8N_URL=https://<instance> N8N_API_KEY=<key> npm run deploy -- <slug>
+N8N_URL=https://citydental.app.n8n.cloud N8N_API_KEY=paste-the-api-key npm run deploy -- city-dental
 ```
 Fix any "credentials not found" lines it prints, run it again with `--activate`.
 

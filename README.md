@@ -47,9 +47,19 @@ Fill `clients/city-dental/client.config.json` (every `REPLACE_` value), then:
 ```bash
 npm run build -- city-dental
 ```
+Deploy — **Windows PowerShell:**
+```powershell
+$env:N8N_URL = "https://citydental.app.n8n.cloud"
+$env:N8N_API_KEY = "xxxx"
+npm run deploy -- city-dental --activate
+```
+Deploy — **macOS / Linux / Git Bash:**
 ```bash
 N8N_URL=https://citydental.app.n8n.cloud N8N_API_KEY=xxxx npm run deploy -- city-dental --activate
 ```
+
+> In these docs `<slug>` means "your client's short name" (e.g. `city-dental`). Type the name itself —
+> **don't type the `<` `>` brackets** (PowerShell rejects them).
 
 `deploy` creates (or, next time, updates) every workflow, links the error handler and AI tools,
 attaches credentials by name, activates them and prints the form URLs. Prefer clicking? Import the files in

@@ -7,7 +7,7 @@ const { CLIENTS_DIR } = require('./config');
 
 const [slug, ...nameParts] = process.argv.slice(2);
 if (!slug || !/^[a-z0-9][a-z0-9-]{1,40}$/.test(slug)) {
-  console.error('Usage: npm run new-client -- <client-slug> ["Clinic Name"]   (slug: lowercase, digits, dashes)');
+  console.error('Usage: npm run new-client -- city-dental "City Dental Care"   (short name: lowercase letters, digits, dashes — no < > brackets)');
   process.exit(1);
 }
 const dir = path.join(CLIENTS_DIR, slug);
