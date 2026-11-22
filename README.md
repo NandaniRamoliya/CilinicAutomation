@@ -116,6 +116,7 @@ Not verified here (needs real accounts): sending through a real WhatsApp number,
 7. [Troubleshooting](docs/07-troubleshooting.md)
 8. [WhatsApp AI receptionist add-on](docs/08-ai-receptionist.md)
 9. [Developer guide — extending the kit](docs/09-developer-guide.md)
+10. [Google Flow video scripts — 10-second promo reels](docs/10-google-flow-video-scripts.md)
 
 > This system handles **appointments and admin only — never medical records.** No diagnosis, symptoms,
 > prescriptions or reports in the sheet, messages or AI chat. Accounts and data belong to the clinic.

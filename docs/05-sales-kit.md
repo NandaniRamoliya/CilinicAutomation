@@ -13,6 +13,10 @@
 | Less load on reception | No register, no reminder calls, double booking blocked automatically |
 | *(add-on)* Bookings 24×7 | WhatsApp assistant books/cancels in Hindi/English while the clinic is closed |
 
+## Promo videos
+
+Ten ready-to-paste Google Flow (Veo) reel scripts + a 30-second ad: [10-google-flow-video-scripts.md](10-google-flow-video-scripts.md).
+
 ## 10-minute demo (use `dist/demo-clinic` on your own n8n + a demo sheet)
 
 1. Open the demo sheet (5 fake appointments, your own numbers).
